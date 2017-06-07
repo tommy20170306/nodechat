@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>Socket.IO chat</title>
+    <title>Real Time Chat</title>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font: 13px Helvetica, Arial; }
@@ -10,28 +10,33 @@
       form input:focus{outline:0;}
       form button { width: 9%; background: #111); border: none; padding: 10px; }
       #messages { list-style-type: none; margin: 0 0 50px; padding: 0; }
-      #messages li { padding: 5px 10px; background:#abc;}
+      #messages li { padding: 5px 10px; background:#abc;border-bottom:1px dashed #eee;}
       #messages li:nth-child(odd) { background: #abc; }
 
-      #typing{position:absolute;display: flex; align-items: center; justify-content: center;width:100%;height:100%;}
-      #typing p{display:none;font-size:20px;padding:25px;background:#eee;}
+      #chat{display:none;}
+      #chat h1{font-family:Arial;font-weight:300;font-size:21px;padding:20px 0;}
+      .centerMiddle{position:absolute;display: flex; align-items: center; justify-content: center;width:100%;height:100%;}
+      #login input{border:0;border-bottom:1px solid #000;font-family:impact;font-size:23px;padding:0 20px;height:32px;transition:.3s;}
+      #login input:focus{border-bottom:1px solid #abc123;outline:0;}
     </style>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="/assets/nickname.js"></script>
     <script>
       var initial;
+      var username = "Anonymous";
+      var userToken = (Math.random()*100).toString(36)+"Hello" // eg user exists
+      var socket = io();
+
       function removeText(){
         initial = setTimeout(function(){
            $('p').stop().fadeOut();
         }, 3000); 
       };
 
-      $(function () {
-        var socket = io();
-        var username = user_arr[Math.floor(Math.random()*user_arr.length)];
-
-        socket.emit('enter', username);
+      function initChat(){
+        
+        socket.emit('enter', username, window.location.href);
 
         $('form').submit(function(){
             socket.emit('chat message', username, $('#m').val());
@@ -39,40 +44,76 @@
             return false;
         });
 
-        $('#m').keydown(function(){
+        $('#m').on('keydown change paste cut',function(){
             socket.emit('typing', username);
-        }).keyup(function(){
+        }).on('keyup blur',function(){
             socket.emit('typing', false);
         });
 
         socket.on('chat message', function(msg){
-          $('#messages').append($('<li style="font-weight:bold;color:#a72ba1;">'+msg+'</li>'));
-        }).on('notice message', function(msg){
-          $('#messages').append($('<li>').text(msg));
-        }).on('typing', function(username){
+          $('#messages').prepend($('<li style="font-weight:bold;color:#a72ba1;">'+msg+'</li>'));
+        })
+
+        .on('notice message', function(msg){
+          $('#messages').prepend($('<li>').text(msg));
+        })
+
+        .on('typing', function(username){
           if(username){
             clearTimeout(initial);
             $('p').text(username+" is typing...").fadeIn();
           }else{         
             removeText();
           }
-        });
+        })
 
+        .on('online user', function(online_user){
+          $('h1 small').text(online_user);
+        });
+      }
+
+      $(function () {
+          $("#login input").keypress(function(e) {
+              if(e.which == 13) {
+                socket.emit('exist user', $("#login input").val(), userToken);  
+              }
+          });
+
+          socket.on('exist', function(exist, token){
+            if(token == userToken){
+              if(exist){            
+                  $('#login .error').text("User exists");
+              }else{
+                username = $("#login input").val();
+                initChat();
+                $('#login').remove();
+                $('#chat').show();
+              }
+            }
+          });
       });
     </script>
     
   </head>
   <body>
-    <div id="typing">
-      <p></p>
+    <div id="login" class="centerMiddle">
+        <p style="font-family:impact;font-size:32px;">What's your nickname?</p>
+        <br/>
+        <p><input name="username" id="username" /></p>
+        <br/><br/><br/>
+        <div class="error"></div>
     </div>
 
-    <h1>Online Users:<small></small></h1>
-    <ul id="messages"></ul>
+    <div id="chat">
 
-    <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
-    </form>
+      <h1>Online Users: <small></small></h1>
+      <p style="color:#123abc;padding:10px;">&nbsp;</p>
+      <ul id="messages"></ul>
+
+      <form action="">
+        <input id="m" autocomplete="off" /><button>Send</button>
+      </form>
+    </div>
   </body>
 </html>
     
