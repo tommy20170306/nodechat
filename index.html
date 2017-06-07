@@ -75,7 +75,7 @@
       $(function () {
           $("#login input").keypress(function(e) {
               if(e.which == 13) {
-                socket.emit('exist user', $("#login input").val(), userToken);  
+                socket.emit('exist user', $("#login input").val(), userToken, window.location.href);  
               }
           });
 
