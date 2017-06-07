@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      form { background: #eee; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form input { background:#ddd;border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form input:focus{outline:0;}
+      form button { width: 9%; background: #111); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0 0 50px; padding: 0; }
+      #messages li { padding: 5px 10px; background:#abc;}
+      #messages li:nth-child(odd) { background: #abc; }
+
+      #typing{position:absolute;display: flex; align-items: center; justify-content: center;width:100%;height:100%;}
+      #typing p{display:none;font-size:20px;padding:25px;background:#eee;}
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="/assets/nickname.js"></script>
+    <script>
+      var initial;
+      function removeText(){
+        initial = setTimeout(function(){
+           $('p').stop().fadeOut();
+        }, 3000); 
+      };
+
+      $(function () {
+        var socket = io();
+        var username = user_arr[Math.floor(Math.random()*user_arr.length)];
+
+        socket.emit('enter', username);
+
+        $('form').submit(function(){
+            socket.emit('chat message', username, $('#m').val());
+            $('#m').val('');
+            return false;
+        });
+
+        $('#m').keydown(function(){
+            socket.emit('typing', username);
+        }).keyup(function(){
+            socket.emit('typing', false);
+        });
+
+        socket.on('chat message', function(msg){
+          $('#messages').append($('<li style="font-weight:bold;color:#a72ba1;">'+msg+'</li>'));
+        }).on('notice message', function(msg){
+          $('#messages').append($('<li>').text(msg));
+        }).on('typing', function(username){
+          if(username){
+            clearTimeout(initial);
+            $('p').text(username+" is typing...").fadeIn();
+          }else{         
+            removeText();
+          }
+        });
+
+      });
+    </script>
+    
+  </head>
+  <body>
+    <div id="typing">
+      <p></p>
+    </div>
+
+    <h1>Online Users:<small></small></h1>
+    <ul id="messages"></ul>
+
+    <form action="">
+      <input id="m" autocomplete="off" /><button>Send</button>
+    </form>
+  </body>
+</html>
+    
