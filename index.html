@@ -6,8 +6,9 @@
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font: 13px Helvetica, Arial; }
       form { background: #eee; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-      form input { background:#ddd;border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form input { border: 0; padding: 10px; width: 79%; margin-right: .5%; }
       form input:focus{outline:0;}
+      form select{width:10%;height:30px;border: medium none;}
       form button { width: 9%; background: #111); border: none; padding: 10px; }
       #messages { list-style-type: none; margin: 0 0 50px; padding: 0; }
       #messages li { padding: 5px 10px; background:#abc;border-bottom:1px dashed #eee;}
@@ -39,7 +40,7 @@
         socket.emit('enter', username, window.location.href);
 
         $('form').submit(function(){
-            socket.emit('chat message', username, $('#m').val());
+            socket.emit('chat message', username, $('#m').val(), $('#p').val());
             $('#m').val('');
             return false;
         });
@@ -68,7 +69,21 @@
         })
 
         .on('online user', function(online_user){
-          $('h1 small').text(online_user);
+          $('h1 small').html('');
+          $('form select').html(
+            '<option>All</option>'
+          );
+
+          for(var i=0; i<online_user.length; i++){
+            if(username !== online_user[i]){
+              $('h1 small').append(online_user[i]+"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+              $('form select').append(
+                '<option value='+online_user[i]+'>'+online_user[i]+'</option>'
+              );
+            }else{
+              $('h1 small').append("<span style='color:#a02b13;font-weight:bold;'>"+online_user[i]+"</span>"+"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+            }
+          }
         });
       }
 
@@ -82,7 +97,7 @@
           socket.on('exist', function(exist, token){
             if(token == userToken){
               if(exist){            
-                  $('#login .error').text("User exists");
+                  $('#login .error').text("User exists or invalid");
               }else{
                 username = $("#login input").val();
                 initChat();
@@ -105,13 +120,14 @@
     </div>
 
     <div id="chat">
-
       <h1>Online Users: <small></small></h1>
       <p style="color:#123abc;padding:10px;">&nbsp;</p>
       <ul id="messages"></ul>
 
       <form action="">
-        <input id="m" autocomplete="off" /><button>Send</button>
+        <input id="m" autocomplete="off" placeholder="Message" />
+        <select id="p"></select>
+        <button>Send</button>
       </form>
     </div>
   </body>
