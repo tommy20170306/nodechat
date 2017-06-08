@@ -87,18 +87,18 @@ io.on('connection', (socket) => {
 		if(msg.trim() !== ""){
 			var date = Date();
 			if(receiver === "All"){
-				io.to(room).emit('chat message', "<small style='font-weight:300;'>"+dateFormat(date, "HH:MM:ss dd/mm/yyyy") +"</small>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" +username+": "+msg );
+				io.to(room).emit('chat message', "<small style='font-weight:300;'>"+dateFormat(date, "HH:MM:ss dd/mm/yyyy") +"</small>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" +usr+": "+msg );
 			}else{
-				io.to(online_user[room][receiver]).to(online_user[room][username]).emit('chat message', "<small style='font-weight:300;'>"+dateFormat(date, "HH:MM:ss dd/mm/yyyy") +"</small>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(private) " +username+": "+msg );
+				io.to(online_user[room][receiver]).to(online_user[room][username]).emit('chat message', "<small style='font-weight:300;'>"+dateFormat(date, "HH:MM:ss dd/mm/yyyy") +"</small>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(private) " +usr+": "+msg );
 			}
 		}
 
-		console.log(receiver);
-		console.log(online_user[room][receiver]);
+		//console.log(receiver);
+		//console.log(online_user[room][receiver]);
 	});
 
 	socket.on('typing', (username) => {
-		io.to(room).emit('typing', username);
+		io.to(room).emit('typing', usr);
 	});
 
 	socket.on('disconnect', () => {	
